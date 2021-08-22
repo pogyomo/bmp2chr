@@ -27,3 +27,9 @@
 
 ## treat of pallet
 * ((x,y) pixel pallet number)%4 -> (x,y) pixel color number in chr
+
+
+## 動き
+* 右上から右方向に画像をコンバートしていく
+* 右端についたら一段下の画像を右方向にコンバートしていく
+* これを繰り返す

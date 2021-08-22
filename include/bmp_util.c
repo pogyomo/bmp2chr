@@ -38,9 +38,8 @@ typedef struct {
 
 
 
-void getFileHeader(FILE *ifp, BITMAPFILEHEADER *bmp_file){
+void getHeaderData(FILE *ifp, BITMAPFILEHEADER *bmp_file, BITMAPINFOHEADER *bmp_info){
     /* get file header */
-    printf("---reading file header\n");
     fread(&bmp_file->bfType,      sizeof(bmp_file->bfType),      1, ifp);
     fread(&bmp_file->bfSize,      sizeof(bmp_file->bfSize),      1, ifp);
     fread(&bmp_file->bfReserved1, sizeof(bmp_file->bfReserved1), 1, ifp);
@@ -48,19 +47,7 @@ void getFileHeader(FILE *ifp, BITMAPFILEHEADER *bmp_file){
     fread(&bmp_file->bfOffBits,   sizeof(bmp_file->bfOffBits),   1, ifp);
 
 
-    /* print file header info */
-    printf("bfType %#x\n", bmp_file->bfType);
-    printf("bfSize %#x\n", bmp_file->bfSize);
-    printf("bfReserved1 %#x\n", bmp_file->bfReserved1);
-    printf("bfReserved2 %#x\n", bmp_file->bfReserved2);
-    printf("bfOffBits %#x\n", bmp_file->bfOffBits);
-    printf("\n");
-}
-
-
-void getInfoHeader(FILE *ifp, BITMAPINFOHEADER *bmp_info){
     /* get info header */
-    printf("---reading info header\n");
     fread(&bmp_info->biSize,         sizeof(bmp_info->biSize),         1, ifp);
     fread(&bmp_info->biWidth,        sizeof(bmp_info->biWidth),        1, ifp);
     fread(&bmp_info->biHeight,       sizeof(bmp_info->biHeight),       1, ifp);
@@ -72,18 +59,4 @@ void getInfoHeader(FILE *ifp, BITMAPINFOHEADER *bmp_info){
     fread(&bmp_info->biYPixPerMeter, sizeof(bmp_info->biYPixPerMeter), 1, ifp);
     fread(&bmp_info->biClrUsed,      sizeof(bmp_info->biClrUsed),      1, ifp);
     fread(&bmp_info->biCirImportant, sizeof(bmp_info->biCirImportant), 1, ifp);
-
-    /* print info header info */
-    printf("biSize %#x\n", bmp_info->biSize);
-    printf("biWidth %#x\n", bmp_info->biWidth);
-    printf("biHeight %#x\n", bmp_info->biHeight);
-    printf("biPlanes %#x\n", bmp_info->biPlanes);
-    printf("biBitCount %#x\n", bmp_info->biBitCount);
-    printf("biCompression %#x\n", bmp_info->biCompression);
-    printf("biSizeImage %#x\n", bmp_info->biSizeImage);
-    printf("biXPixPerMeter %#x\n", bmp_info->biXPixPerMeter);
-    printf("biYPixPerMeter %#x\n", bmp_info->biYPixPerMeter);
-    printf("biClrUsed %#x\n", bmp_info->biClrUsed);
-    printf("biCirImportant %#x\n", bmp_info->biCirImportant);
-    printf("\n");
 }
