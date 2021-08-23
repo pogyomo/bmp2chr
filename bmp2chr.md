@@ -33,3 +33,9 @@
 * 右上から右方向に画像をコンバートしていく
 * 右端についたら一段下の画像を右方向にコンバートしていく
 * これを繰り返す
+
+
+## usage
+* bmp2chr.exe -n X input_filename output_filename
+* if X != 0, then convert X data
+* if X == 0, then convert all data
