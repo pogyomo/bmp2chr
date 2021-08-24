@@ -1,6 +1,7 @@
 # bmp2chr
 ## needed data
 * File Header
+
 | Name        | Value |
 | :---------- | :---- |
 | bfType      | 'BM'  |
@@ -10,6 +11,7 @@
 | bfOffBits   |       |
 
 * Info Header
+
 | Name           | Value |
 | :------------- | :---- |
 | biSize         | 40    |
