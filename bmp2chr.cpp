@@ -133,11 +133,6 @@ int main(int argc, char *argv[]){
             for (int j = 0; j < bmp_info.biWidth; j+=8){
 
 
-                /* print number */
-                printf("converting data %d\n", cnt);
-                cnt++;
-
-
                 /* convert data */
                 for (int k = 0; k < 8; k++){
                     for (int l = 0; l < 8; l++){
@@ -190,11 +185,6 @@ int main(int argc, char *argv[]){
     }else{
         for (int i = 0; i < bmp_info.biHeight; i+=8){
             for (int j = 0; j < bmp_info.biWidth; j+=8){
-
-
-                /* print number */
-                printf("converting data %d\n", cnt);
-                cnt++;
 
 
                 /* convert data */
