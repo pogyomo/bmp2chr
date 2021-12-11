@@ -17,6 +17,7 @@ bmp8 *bmp8_read(char *filename) {
     }
 
     // Get file header
+    // Other data of bfType will stored as little endian at the file
     fread(&result->file.bfType,      sizeof(result->file.bfType),      1, ifp);
     fread(&result->file.bfSize,      sizeof(result->file.bfSize),      1, ifp);
     fread(&result->file.bfReserved1, sizeof(result->file.bfReserved1), 1, ifp);
@@ -24,6 +25,7 @@ bmp8 *bmp8_read(char *filename) {
     fread(&result->file.bfOffBits,   sizeof(result->file.bfOffBits),   1, ifp);
 
     // Get info header
+    // All data will stored as little endian at the file
     fread(&result->info.biSize,         sizeof(result->info.biSize),         1, ifp);
     fread(&result->info.biWidth,        sizeof(result->info.biWidth),        1, ifp);
     fread(&result->info.biHeight,       sizeof(result->info.biHeight),       1, ifp);
@@ -127,6 +129,7 @@ bmp8 *bmp8_read(char *filename) {
 
     // Get data
     // Input file's width and height is multiple of 8, so don't think padding
+    // Pixel of (x, y) -> data[x][y]
     for (int i = result->info.biHeight - 1; i >= 0; i--) {
         for (int j = 0; j < result->info.biWidth; j++) {
             fread(&result->data[j][i], sizeof(result->data[j][i]), 1, ifp);
@@ -157,26 +160,26 @@ void bmp8_free(bmp8 *ptr) {
 void bmp8_debug(bmp8 *ptr) {
     // Print file header
     printf("----------File header----------\n");
-    printf("bfType      : %0x\n", ptr->file.bfType);
-    printf("bfSize      : %0x\n", ptr->file.bfSize);
-    printf("bfReserved1 : %0x\n", ptr->file.bfReserved1);
-    printf("bfReserved2 : %0x\n", ptr->file.bfReserved2);
-    printf("bfOffBits   : %0x\n", ptr->file.bfOffBits);
+    printf("bfType      : %02x\n", ptr->file.bfType);
+    printf("bfSize      : %04x\n", ptr->file.bfSize);
+    printf("bfReserved1 : %02x\n", ptr->file.bfReserved1);
+    printf("bfReserved2 : %02x\n", ptr->file.bfReserved2);
+    printf("bfOffBits   : %04x\n", ptr->file.bfOffBits);
     printf("\n");
 
     // Print info header
     printf("----------Info header----------\n");
-    printf("biSize         : %0x\n", ptr->info.biSize);
-    printf("biWidth        : %0x\n", ptr->info.biWidth);
-    printf("biHeight       : %0x\n", ptr->info.biHeight);
-    printf("biPlanes       : %0x\n", ptr->info.biPlanes);
-    printf("biBitCount     : %0x\n", ptr->info.biBitCount);
-    printf("biCompression  : %0x\n", ptr->info.biBitCount);
-    printf("biSizeImage    : %0x\n", ptr->info.biSizeImage);
-    printf("biXPixPerMeter : %0x\n", ptr->info.biXPixPerMeter);
-    printf("biYPixPerMeter : %0x\n", ptr->info.biYPixPerMeter);
-    printf("biClrUsed      : %0x\n", ptr->info.biClrUsed);
-    printf("biCirImportant : %0x\n", ptr->info.biCirImportant);
+    printf("biSize         : %04x\n", ptr->info.biSize);
+    printf("biWidth        : %04x\n", ptr->info.biWidth);
+    printf("biHeight       : %04x\n", ptr->info.biHeight);
+    printf("biPlanes       : %02x\n", ptr->info.biPlanes);
+    printf("biBitCount     : %02x\n", ptr->info.biBitCount);
+    printf("biCompression  : %04x\n", ptr->info.biBitCount);
+    printf("biSizeImage    : %04x\n", ptr->info.biSizeImage);
+    printf("biXPixPerMeter : %04x\n", ptr->info.biXPixPerMeter);
+    printf("biYPixPerMeter : %04x\n", ptr->info.biYPixPerMeter);
+    printf("biClrUsed      : %04x\n", ptr->info.biClrUsed);
+    printf("biCirImportant : %04x\n", ptr->info.biCirImportant);
     printf("\n");
 
     // Print palette
@@ -198,14 +201,14 @@ void bmp8_debug(bmp8 *ptr) {
     printf("-----------Pixel data-----------\n");
     for (int i = 0; i < ptr->info.biHeight; i++) {
         // Print first half of row
-        printf("Line%3d_1 : ", i + 1);
+        printf("Line%3d_1 : ", i);
         for (int j = 0; j < ptr->info.biWidth/2; j++) {
             printf("%02x ", ptr->data[j][i]);
         }
         printf("\n");
 
         // Print last half of row
-        printf("Line%3d_2 : ", i + 1);
+        printf("Line%3d_2 : ", i);
         for (int j = ptr->info.biWidth/2; j < ptr->info.biWidth; j++) {
             printf("%02x ", ptr->data[j][i]);
         }
@@ -214,7 +217,7 @@ void bmp8_debug(bmp8 *ptr) {
 }
 
 
-int bmp8_convert(bmp8 *ptr, char *filename, int num) {
+int bmp8_convert(bmp8 *ptr, char *filename, int num, int flag) {
     // Open file with write only
     FILE *ofp = fopen(filename, "wb");
     if (ofp == NULL) {
@@ -222,12 +225,12 @@ int bmp8_convert(bmp8 *ptr, char *filename, int num) {
     }
 
     // Alloc memory for convert
-    uint8_t **conv_temp1 = (uint8_t **)malloc(sizeof(uint8_t *) * 8);
+    uint8_t **conv_temp1 = (uint8_t **)malloc(sizeof(uint8_t *) * BMP_TILE_WIDTH);
     if (conv_temp1 == NULL) {
         return 1;
     }
-    for (int i = 0; i < 8; i++) {
-        conv_temp1[i] = (uint8_t *)malloc(sizeof(uint8_t) * 8);
+    for (int i = 0; i < BMP_TILE_HEIGHT; i++) {
+        conv_temp1[i] = (uint8_t *)malloc(sizeof(uint8_t) * BMP_TILE_HEIGHT);
         if (conv_temp1[i] == NULL) {
             for (int j = 0; j <= i; j++) {
                 free(conv_temp1[j]);
@@ -236,12 +239,12 @@ int bmp8_convert(bmp8 *ptr, char *filename, int num) {
             }
         }
     }
-    uint8_t **conv_temp2 = (uint8_t **)malloc(sizeof(uint8_t *) * 8);
+    uint8_t **conv_temp2 = (uint8_t **)malloc(sizeof(uint8_t *) * BMP_TILE_WIDTH);
     if (conv_temp2 == NULL) {
         return 1;
     }
-    for (int i = 0; i < 8; i++) {
-        conv_temp2[i] = (uint8_t *)malloc(sizeof(uint8_t) * 8);
+    for (int i = 0; i < BMP_TILE_HEIGHT; i++) {
+        conv_temp2[i] = (uint8_t *)malloc(sizeof(uint8_t) * BMP_TILE_HEIGHT);
         if (conv_temp2[i] == NULL) {
             for (int j = 0; j <= i; j++) {
                 free(conv_temp2[j]);
@@ -251,14 +254,15 @@ int bmp8_convert(bmp8 *ptr, char *filename, int num) {
         }
     }
 
-    // Convert all data or subset of data
+    // Convert all data or specified number of data
     uint8_t temp;
     int cnt = 0;
     for (int i = 0; i < ptr->info.biHeight; i += 8) {
         for (int j = 0; j < ptr->info.biWidth; j += 8) {
             // Convert data to 0 or 1
-            for (int k = 0; k < 8; k++) {
-                for (int l = 0; l < 8; l++) {
+            // This is depende on current pixel's palette number
+            for (int k = 0; k < BMP_TILE_HEIGHT; k++) {
+                for (int l = 0; l < BMP_TILE_WIDTH; l++) {
                     if (ptr->data[j + l][i + k] % 4 == 0) {
                         conv_temp1[l][k] = 0;
                         conv_temp2[l][k] = 0;
@@ -275,27 +279,32 @@ int bmp8_convert(bmp8 *ptr, char *filename, int num) {
                 }
             }
 
+            // If flag != 0, print current tile data
+            if (flag != 0) {
+                bmp8_convert_debug(conv_temp1, conv_temp2, cnt);
+            }
+
             // Write data to file
-            for (int k = 0; k < 8; k++){
+            for (int k = 0; k < BMP_TILE_HEIGHT; k++){
                 temp = 0;
-                for (int l = 0; l < 8; l++){
+                for (int l = 0; l < BMP_TILE_WIDTH; l++){
                     temp += conv_temp1[l][k]<<(7-l);
                 }
                 fwrite(&temp, sizeof(temp), 1, ofp);
             }
-            for (int k = 0; k < 8; k++){
+            for (int k = 0; k < BMP_TILE_HEIGHT; k++){
                 temp = 0;
-                for (int l = 0; l < 8; l++){
+                for (int l = 0; l < BMP_TILE_WIDTH; l++){
                     temp += conv_temp2[l][k]<<(7-l);
                 }
                 fwrite(&temp, sizeof(temp), 1, ofp);
             }
 
             // Detect end
-            // If num is 0, convert all data
+            // If num == 0, the if statement will be false at any time
             cnt++;
             if (cnt == num) {
-                for (int i = 0; i < 8; i++) {
+                for (int i = 0; i < BMP_TILE_WIDTH; i++) {
                     free(conv_temp1[i]);
                     free(conv_temp2[i]);
                 }
@@ -307,11 +316,33 @@ int bmp8_convert(bmp8 *ptr, char *filename, int num) {
     }
 
     // End of program
-    for (int i = 0; i < 8; i++) {
+    // If num == 0, program will contact this section
+    for (int i = 0; i < BMP_TILE_WIDTH; i++) {
         free(conv_temp1[i]);
         free(conv_temp2[i]);
     }
     free(conv_temp1);
     free(conv_temp2);
     return 0;
+}
+
+
+void bmp8_convert_debug(uint8_t **ptr1, uint8_t **ptr2, int num) {
+    // Print data
+    printf("Tile%3d\n", num);
+    for (int i = 0; i < BMP_TILE_HEIGHT; i++) {
+        for (int j = 0; j < BMP_TILE_WIDTH; j++) {
+            if (ptr1[j][i] == 0 && ptr2[j][i] == 0) {
+                printf("%1d ", 0);
+            } else if (ptr1[j][i] == 1 && ptr2[j][i] == 0) {
+                printf("%1d ", 1);
+            } else if (ptr1[j][i] == 0 && ptr2[j][i] == 1) {
+                printf("%1d ", 2);
+            } else {
+                printf("%1d ", 3);
+            }
+        }
+        printf("\n");
+    }
+    printf("\n");
 }

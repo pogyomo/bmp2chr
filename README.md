@@ -38,6 +38,4 @@
 
 
 ## usage
-* bmp2chr.exe -n X input_filename output_filename
-* if X != 0, then convert X data
-* if X == 0, then convert all data
+* run this program with -? 

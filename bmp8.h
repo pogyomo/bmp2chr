@@ -20,6 +20,8 @@
 // Define for calcuration
 #define BMP_FILEHEADER_BYTE 14
 #define BMP_PALETTE_BYTE    4
+#define BMP_TILE_WIDTH      8
+#define BMP_TILE_HEIGHT     8
 
 
 // Bitmap file header
@@ -71,29 +73,38 @@ struct bmp8 {
 
 
 // Name : read_bmp8
-// Move : Read bitmap file from given file
+// Move : * Read bitmap file from given file
 // Ret  : If failed, return NULL
 bmp8 *bmp8_read(char *);
 
 
 // Name : free_bmp8
-// Move : Free memory
+// Move : * Free memory
 // Ret  : None
 void bmp8_free(bmp8 *);
 
 
 // Name : debug_bmp8
-// Move : Display bmp8's data
+// Move : * Display bmp8's data
 // Ret  : None
 void bmp8_debug(bmp8 *);
 
 
 // Name : bmp8_convert
-// Move : Convert bmp8 to chr and write it to file
-//        If 3rd argument is 0, convert all data
-//        Else, convert argument's quantity of data linearly
+// Move : * Convert bmp8 to chr and write it to file
+//        * 3rd argument is the number of 8x8 tile to convert linearly
+//          If 3rd argument is 0, convert all data
+//        * Linearly mean that to convert the image from the top right to the right
+//          Then, you get to the right edge, convert the image one level down to the right
+//          Repeat this procedure as specified times
 // Ret  : If failed, return 1, else return 0
-int bmp8_convert(bmp8 *, char *, int);
+int bmp8_convert(bmp8 *, char *, int, int);
+
+
+// Name : bmp8_convert_debug
+// Move : Display current processing picture
+// Ret  : None
+void bmp8_convert_debug(uint8_t **, uint8_t **, int);
 
 
 #endif
